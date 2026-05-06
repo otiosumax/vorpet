@@ -7,7 +7,9 @@ export default function HomeView() {
       <Header />
       <div id="wrapper">
         <div id="pet">
-          
+          <br />
+          <br />
+          представьте, что тут питомец
         </div>
       </div>
     </>
