@@ -1,0 +1,10 @@
+{
+  "manifest_version": 3,
+  "name": "Vorpet",
+  "version": "0.0.1",
+  "description": "A useful virtual pet",
+  "permissions": [],
+  "action": {
+    "default_popup": "index.html"
+  }
+}
