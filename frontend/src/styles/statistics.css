@@ -1,0 +1,76 @@
+#statistics {
+  display: flex;
+  flex-direction: column;
+  gap: 8pt;
+  padding: 12pt 16pt;
+}
+
+.stat {
+  display: flex;
+  align-items: center;
+  gap: 10pt;
+  width: 100%;
+  box-sizing: border-box;
+  color: var(--text-color);
+}
+
+.stat-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 28pt;
+  width: 28pt;
+  height: 28pt;
+  border-radius: 8pt;
+  background-color: var(--bg-variant);
+  font-size: 16pt;
+  line-height: 1;
+}
+
+.stat-content {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 5pt;
+}
+
+.stat-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8pt;
+}
+
+.stat-name,
+.stat-value {
+  margin: 0;
+  font-size: 10pt;
+  line-height: 1.2;
+}
+
+.stat-name {
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stat-value {
+  flex: 0 0 auto;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-progress {
+  width: 100%;
+  height: 6pt;
+  overflow: hidden;
+  border-radius: 999pt;
+  background-color: var(--bg-variant);
+}
+
+.stat-progress-value {
+  height: 100%;
+  border-radius: inherit;
+  background-color: var(--primary-color);
+  transition: width 200ms ease;
+}

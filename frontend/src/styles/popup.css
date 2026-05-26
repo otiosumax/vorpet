@@ -5,3 +5,9 @@
   height: 200pt;
 }
 
+#footer {
+  width: 100%;
+  text-align: center;
+  font-size: 12pt;
+  margin: auto 0;
+}

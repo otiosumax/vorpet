@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import "../styles/header.css";
-import { useThemeStore } from "../themeStore";
+import { useThemeStore } from "../store/themeStore";
 
 type option = {
   name: string;
@@ -9,7 +9,7 @@ type option = {
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement | null>(null);
+  const settingsRef = useRef<HTMLDivElement | null>(null);
 
   const themeStore = useThemeStore;
   const [theme, setTheme] = useState(themeStore.savedTheme);
@@ -22,7 +22,7 @@ export default function Header() {
         if (theme === "dark") {
           themeStore.setTheme("light");
           setTheme("light");
-        } else if (theme === "light" || theme == 'system') {
+        } else if (theme === "light" || theme == "system") {
           themeStore.setTheme("dark");
           setTheme("dark");
         }
@@ -44,7 +44,10 @@ export default function Header() {
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+      if (
+        settingsRef.current &&
+        !settingsRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     }
@@ -59,24 +62,29 @@ export default function Header() {
   return (
     <>
       <div id="header">
-        <div>logo</div>
+        <div className="header-btn">logo</div>
         <h2>Vorpet</h2>
         <div
-          onClick={() => {
-            setIsOpen((prev) => !prev);
+          onMouseLeave={() => {
+            setIsOpen(false);
           }}
         >
-          settings
-        </div>
-        {isOpen && (
-          <div id="settings" ref={menuRef}>
+          <div
+            className="header-btn"
+            onClick={() => {
+              setIsOpen(true);
+            }}
+          >
+            settings
+          </div>
+          <div id="settings" ref={settingsRef} className={isOpen ? "open" : ""}>
             {options.map((option, index) => (
               <div key={index} onClick={option.action}>
                 {option.name}
               </div>
             ))}
           </div>
-        )}
+        </div>
       </div>
     </>
   );

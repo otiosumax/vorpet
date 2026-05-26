@@ -2,7 +2,7 @@
   margin: 0;
   padding: 0;
 
-  --bg-color: #fefefe;
+  --bg-color: #fcfcfc;
   --bg-variant: #f6f6f6;
   --text-color: #404040;
   --primary-color: #ffe204;
@@ -17,7 +17,7 @@
 [data-theme="dark"] {
   --bg-color: #404040;
   --bg-variant: #303030;
-  --text-color: #fefefe;
+  --text-color: #fcfcfc;
 
   background-color: var(--bg-color);
   color: var(--text-color);
@@ -27,7 +27,7 @@
   :root:not([data-theme]) {
     --bg-color: #404040;
     --bg-variant: #303030;
-    --text-color: #fefefe;
+    --text-color: #fcfcfc;
 
     background-color: var(--bg-color);
     color: var(--text-color);

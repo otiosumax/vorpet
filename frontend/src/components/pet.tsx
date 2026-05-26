@@ -5,7 +5,6 @@ export default function Pet() {
     <>
       <div>
         <div id="pet"><img src="/pet.png" alt="Pet" /></div>
-        <div id="stats">Здесь будет стата</div>
       </div>
     </>
   );

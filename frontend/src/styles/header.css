@@ -3,7 +3,8 @@
   justify-content: space-between;
   height: 30pt;
   padding: 8pt 16pt;
-  background-color: var(--bg-variant);
+  background-color: var(--primary-color);
+  color: var(--on-primary-color);
 
   cursor: default;
 
@@ -11,20 +12,43 @@
     margin: 0;
   }
 
+  .header-btn {
+    padding: 4pt 8pt;
+    cursor: pointer;
+  }
+
   #settings {
     z-index: 5;
-
     position: absolute;
     top: 30pt;
     right: 0pt;
     background-color: var(--bg-variant);
-    /* border: 1px solid var(--border); */
+    color: var(--text-color);
     border-radius: 4pt;
-    padding: 8pt;
+    padding: 0 8pt; /* horizontal padding only, vertical handled by max-height */
 
     display: flex;
     flex-direction: column;
     gap: 4pt;
+
+    /* Closed state */
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    pointer-events: none;
+
+    transition:
+      max-height 200ms ease,
+      opacity 150ms ease,
+      padding 200ms ease;
+
+    /* Open state */
+    &.open {
+      max-height: 200px; /* larger than the menu will ever be */
+      opacity: 1;
+      pointer-events: auto;
+      padding: 8pt;
+    }
 
     div {
       padding: 4pt 8pt;
