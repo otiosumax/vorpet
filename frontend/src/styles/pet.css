@@ -1,0 +1,20 @@
+#pet {
+  position: relative;
+
+  width: 150pt;
+  height: 150pt;
+  background-color: var(--primary-color);
+  border-radius: 16pt;
+  border: 1pt solid black;
+
+  img {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 95%;
+    height: 95%;
+    object-fit: contain;
+    border-radius: 12pt;
+  }
+}
