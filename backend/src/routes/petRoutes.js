@@ -4,17 +4,18 @@ import {
   updatePetAppearance, 
   updatePetStats,
   createInteraction 
-} from '../controllers/petController.js'
+} from '../controllers/petController.js';
+
+// Импортируем сервис для работы с ИИ
+import { generateResponse } from '../services/aiService.js';
 
 // Получить или создать питомца для пользователя
 export async function getOrCreatePet(req, res) {
   try {
     const { userId } = req.params
     
-    // Проверяем, есть ли уже питомец
     let pet = await getPetByUserId(userId)
     
-    // Если питомца нет, создаем нового
     if (!pet) {
       pet = await createPet(userId)
       return res.status(201).json({
@@ -91,13 +92,12 @@ export async function updatePetMood(req, res) {
   }
 }
 
-// Запрос на пересказ статьи (с сохранением в историю)
+// Запрос на пересказ статьи (с использованием ИИ)
 export async function summarizeArticle(req, res) {
   try {
     const { userId } = req.params
     const { text, url } = req.body
     
-    // Получаем питомца
     const pet = await getPetByUserId(userId)
     if (!pet) {
       return res.status(404).json({
@@ -105,16 +105,15 @@ export async function summarizeArticle(req, res) {
         message: 'Питомец не найден'
       })
     }
+
+    // Вызываем ИИ для пересказа
+    const summary = await generateResponse(text, 'summarize');
     
-    // Здесь будет логика вызова ИИ для пересказа
-    // Пока возвращаем заглушку
-    const summary = "Это пример пересказа статьи. В реальной версии здесь будет ответ от ИИ."
+    // Сохраняем взаимодействие
+    await createInteraction(pet.id, 'summary', text, { url, summary });
     
-    // Сохраняем взаимодействие в базу
-    await createInteraction(pet.id, 'summary', text, { url, summary })
-    
-    // Добавляем опыт питомцу
-    await updatePetStats(userId, { experience: 10 })
+    // Добавляем опыт
+    await updatePetStats(userId, { experience: 10 });
     
     res.json({
       success: true,
@@ -133,13 +132,12 @@ export async function summarizeArticle(req, res) {
   }
 }
 
-// Вопрос-ответ по странице (с сохранением в историю)
+// Вопрос-ответ по странице (с использованием ИИ)
 export async function askQuestion(req, res) {
   try {
     const { userId } = req.params
     const { question, pageContent } = req.body
     
-    // Получаем питомца
     const pet = await getPetByUserId(userId)
     if (!pet) {
       return res.status(404).json({
@@ -147,16 +145,15 @@ export async function askQuestion(req, res) {
         message: 'Питомец не найден'
       })
     }
+
+    // Вызываем ИИ для ответа на вопрос
+    const answer = await generateResponse(pageContent, 'qa', question);
     
-    // Здесь будет логика вызова ИИ для ответа на вопрос
-    // Пока возвращаем заглушку
-    const answer = "Это пример ответа на вопрос. В реальной версии здесь будет ответ от ИИ на основе содержимого страницы."
+    // Сохраняем взаимодействие
+    await createInteraction(pet.id, 'qa', question, { pageContent, answer });
     
-    // Сохраняем взаимодействие в базу
-    await createInteraction(pet.id, 'qa', question, { pageContent, answer })
-    
-    // Добавляем опыт питомцу
-    await updatePetStats(userId, { experience: 15 })
+    // Добавляем опыт
+    await updatePetStats(userId, { experience: 15 });
     
     res.json({
       success: true,
@@ -176,13 +173,12 @@ export async function askQuestion(req, res) {
   }
 }
 
-// Просто поболтать с питомцем
+// Чат с питомцем (с использованием ИИ)
 export async function chatWithPet(req, res) {
   try {
     const { userId } = req.params
     const { message } = req.body
     
-    // Получаем питомца
     const pet = await getPetByUserId(userId)
     if (!pet) {
       return res.status(404).json({
@@ -190,26 +186,21 @@ export async function chatWithPet(req, res) {
         message: 'Питомец не найден'
       })
     }
+
+    // Вызываем ИИ для генерации ответа в стиле питомца
+    const responseText = await generateResponse(message, 'chat');
     
-    // Здесь будет логика вызова ИИ для чата
-    // Пока возвращаем заглушку с учетом настроения питомца
-    const responses = {
-      happy: `Я сейчас в отличном настроении! 😊 ${message}`,
-      sad: `Мне немного грустно... но я постараюсь ответить. ${message}`,
-      excited: `Ура! Я так рад общению! 🎉 ${message}`,
-      tired: `Я устал... давай покороче. ${message}`
-    }
+    // Сохраняем взаимодействие
+    await createInteraction(pet.id, 'chat', message, responseText);
     
-    const response = responses[pet.mood] || `${message}`
-    
-    // Сохраняем взаимодействие в базу
-    await createInteraction(pet.id, 'chat', message, { response })
+    // Добавляем небольшой опыт за общение
+    await updatePetStats(userId, { experience: 5 });
     
     res.json({
       success: true,
       data: {
         message,
-        response,
+        response: responseText,
         pet: await getPetByUserId(userId)
       }
     })
