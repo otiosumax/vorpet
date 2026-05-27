@@ -1,0 +1,43 @@
+// Схема базы данных для проекта AI Pet
+// Здесь описываются все таблицы и их связи
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Модель питомца - хранит информацию о внешности и состоянии питомца
+model Pet {
+  id          Int       @id @default(autoincrement())
+  userId      String    @unique // Уникальный ID пользователя (из расширения)
+  type        String    @default("cat") // Тип питомца: cat, dog, fox и т.д.
+  color       String    @default("#FFFFFF") // Основной цвет питомца
+  accessories Json      @default("[]") // Массив аксессуаров в формате JSON
+  mood        String    @default("happy") // Текущее настроение: happy, sad, excited, tired
+  level       Int       @default(1) // Уровень питомца
+  experience  Int       @default(0) // Опыт для повышения уровня
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  // Связь с историей взаимодействий
+  interactions Interaction[]
+}
+
+// Модель для хранения истории взаимодействий с пользователем
+model Interaction {
+  id         Int      @id @default(autoincrement())
+  petId      Int
+  pet        Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
+  type       String   // Тип взаимодействия: "summary", "qa", "chat"
+
+  userInput  String?  @db.Text   // Что написал пользователь
+  aiResponse String?  @db.Text   // Что ответил ИИ
+
+  content    String?   @db.Text // Содержимое запроса или ответа
+  metadata   Json?    // Дополнительные данные (например, URL страницы)
+  createdAt  DateTime @default(now())
+}
