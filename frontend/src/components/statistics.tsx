@@ -1,28 +1,34 @@
 import { useEffect, useState } from "react";
-import StatisticsPlaceholderRepository from "../services/statisticsPlaceholderRepository";
+import { useStatisticsStore } from "../store/statisticsStore";
 import "../styles/statistics.css";
 import Stat from "./stat";
 
 type StatisticsValue = {
-  hunger: number;
-  mood: number;
-  energy: number;
+  mood: string;
+  experience: number;
+  level: number;
 };
 
-const statisticsRepository = new StatisticsPlaceholderRepository("placeholder");
+const moodPercentByName: Record<string, number> = {
+  happy: 100,
+  excited: 85,
+  tired: 45,
+  sad: 25,
+};
 
 export default function Statistics() {
   const [statistics, setStatistics] = useState<StatisticsValue>({
-    hunger: 0,
-    mood: 0,
-    energy: 0,
+    mood: "happy",
+    experience: 0,
+    level: 1,
   });
 
   useEffect(() => {
     let isMounted = true;
+    const statisticsStore = useStatisticsStore;
 
     async function updateStatistics() {
-      const nextStatistics = await statisticsRepository.getStatistics();
+      const nextStatistics = await statisticsStore.loadStatistics();
 
       if (isMounted) {
         setStatistics(nextStatistics);
@@ -40,9 +46,13 @@ export default function Statistics() {
 
   return (
     <div id="statistics">
-      <Stat name="Hunger" icon="🍽️" value={statistics.hunger} />
-      <Stat name="Mood" icon="😊" value={statistics.mood} />
-      <Stat name="Energy" icon="⚡" value={statistics.energy} />
+      <Stat
+        name={`Mood: ${statistics.mood}`}
+        icon="😊"
+        value={moodPercentByName[statistics.mood] ?? 50}
+      />
+      <Stat name="Experience" icon="⭐" value={statistics.experience % 100} />
+      <Stat name="Level" icon="🏆" value={Math.min(statistics.level * 10, 100)} />
     </div>
   );
 }
