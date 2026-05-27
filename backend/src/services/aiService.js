@@ -1,6 +1,8 @@
 import OpenAI from 'openai';
 import dotenv from 'dotenv';
 
+dotenv.config();
+
 // Инициализация клиента Groq (используем библиотеку OpenAI)
 const groq = new OpenAI({
   apiKey: process.env.GROQ_API_KEY,
@@ -34,7 +36,7 @@ export const generateResponse = async (userMessage, taskType = 'chat', context =
     }
 
     const completion = await groq.chat.completions.create({
-      model: process.env.GROQ_MODEL || 'llama3-8b-8192',
+      model: process.env.GROQ_MODEL || 'llama-3.1-8b-instant',
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },
         { role: 'user', content: finalPrompt }
@@ -45,7 +47,13 @@ export const generateResponse = async (userMessage, taskType = 'chat', context =
 
     return completion.choices[0].message.content;
   } catch (error) {
-    console.error('Ошибка Groq API:', error);
-    throw new Error('Не удалось получить ответ от питомца. Проверьте соединение или лимиты.');
+    console.error('Ошибка Groq API:', {
+      status: error.status,
+      code: error.code,
+      type: error.type,
+      message: error.message
+    });
+
+    throw new Error(`Не удалось получить ответ от питомца: ${error.message}`);
   }
 };

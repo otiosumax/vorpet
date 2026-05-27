@@ -88,6 +88,7 @@ async function summarizeSelection(text: string, tab?: TabData) {
     await saveAndOpenSummary(summary, text, tab);
   } catch (error) {
     console.error(error);
+    console.log(error);
     await saveAndOpenSummary(
       "Could not summarize the selected text. Check that the Vorpet API is running.",
       text,
@@ -102,8 +103,9 @@ async function requestSummary(text: string, tab?: TabData) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       text,
-      pageUrl: tab?.url,
-      pageTitle: tab?.title,
+      url: tab?.url,
+      // pageUrl: tab?.url,
+      // pageTitle: tab?.title,
     }),
   });
 
@@ -124,6 +126,10 @@ function getSummaryFromResponse(data: unknown) {
 
     if (typeof summary === "string") {
       return summary;
+    }
+
+    if (isRecord(data.data) && typeof data.data.summary === "string") {
+      return data.data.summary;
     }
   }
 
