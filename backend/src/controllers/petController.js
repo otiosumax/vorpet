@@ -11,10 +11,12 @@ export async function getOrCreatePetData(userId) {
     pet = await prisma.pet.create({
       data: {
         userId,
-        type: 'cat', // Дефолтный тип
+        type: 'cat',
         color: '#FFFFFF',
         accessories: [],
         mood: 'happy',
+        hunger: 50,      // Добавлено
+        energy: 100,     // Добавлено
         experience: 0,
         level: 1
       }
@@ -28,7 +30,7 @@ export async function getPetByUserId(userId) {
   return prisma.pet.findUnique({ where: { userId } });
 }
 
-// Создать питомца (если нужно явно)
+// Создать питомца
 export async function createPet(userId) {
   return prisma.pet.create({
     data: {
@@ -37,6 +39,8 @@ export async function createPet(userId) {
       color: '#FFFFFF',
       accessories: [],
       mood: 'happy',
+      hunger: 50,      // Добавлено
+      energy: 100,     // Добавлено
       experience: 0,
       level: 1
     }
@@ -49,32 +53,43 @@ export async function updatePetAppearance(userId, updates) {
     where: { userId },
     data: {
       ...updates,
-      // Убедимся, что аксессуары сохраняются как массив/объект
       accessories: Array.isArray(updates.accessories) ? updates.accessories : []
     }
   });
 }
 
-// Обновить статы (настроение, опыт)
+// Обновить статы (настроение, опыт, голод, энергия)
 export async function updatePetStats(userId, stats) {
   const pet = await prisma.pet.findUnique({ where: { userId } });
   if (!pet) throw new Error('Питомец не найден');
 
+  // Логика опыта и уровня
   let newExperience = pet.experience + (stats.experience || 0);
   let newLevel = pet.level;
   
-  // Простая формула уровня: каждые 100 опыта новый уровень
   if (newExperience >= newLevel * 100) {
     newLevel += Math.floor(newExperience / (newLevel * 100));
   }
 
+  // Подготовка данных для обновления
+  const updateData = {
+    mood: stats.mood !== undefined ? stats.mood : pet.mood,
+    experience: newExperience,
+    level: newLevel
+  };
+
+  // Добавляем голод и энергию, если они переданы
+  if (stats.hunger !== undefined) {
+    // Ограничиваем значения от 0 до 100
+    updateData.hunger = Math.max(0, Math.min(100, stats.hunger));
+  }
+  if (stats.energy !== undefined) {
+    updateData.energy = Math.max(0, Math.min(100, stats.energy));
+  }
+
   return prisma.pet.update({
     where: { userId },
-    data: {
-      mood: stats.mood || pet.mood,
-      experience: newExperience,
-      level: newLevel
-    }
+    data: updateData
   });
 }
 
@@ -121,9 +136,10 @@ export async function customizePet(req, res) {
 export async function updatePetMood(req, res) {
   try {
     const { userId } = req.params;
-    const { mood, experience } = req.body;
+    const { mood, experience, hunger, energy } = req.body;
     
-    const updatedPet = await updatePetStats(userId, { mood, experience });
+    // Теперь можно передать hunger и energy с фронтенда
+    const updatedPet = await updatePetStats(userId, { mood, experience, hunger, energy });
     
     res.json({ success: true, message: 'Состояние обновлено!', data: updatedPet });
   } catch (error) {
@@ -142,13 +158,17 @@ export async function summarizeArticle(req, res) {
 
     const pet = await getOrCreatePetData(userId);
 
-    // Системный промпт для пересказа
-    const systemPrompt = `Ты дружелюбный браузерный питомец (${pet.type}). Твоя задача — кратко и интересно пересказать суть текста пользователю. Используй эмодзи, соответствующие твоему настроению (${pet.mood}). Не пиши больше 3 абзацев.`;
+    // Добавляем состояние в промпт
+    const systemPrompt = `Ты дружелюбный браузерный питомец (${pet.type}). 
+    Твое текущее состояние: Настроение - ${pet.mood}, Голод - ${pet.hunger}/100, Энергия - ${pet.energy}/100.
+    Если голод > 80, жалуйся на еду. Если энергия < 20, говори, что устаешь.
+    Твоя задача — кратко и интересно пересказать суть текста пользователю. Используй эмодзи. Не пиши больше 3 абзацев.`;
     
     const aiResponse = await generateResponse(systemPrompt, `Перескажи этот текст: ${text}`);
 
     await createInteraction(pet.id, 'summary', text.substring(0, 500), aiResponse);
-    await updatePetStats(userId, { experience: 15 });
+    // Уменьшаем энергию при работе
+    await updatePetStats(userId, { experience: 15, energy: -5 });
 
     res.json({ success: true, data: { summary: aiResponse, pet: await getOrCreatePetData(userId) } });
   } catch (error) {
@@ -167,14 +187,16 @@ export async function askQuestion(req, res) {
 
     const pet = await getOrCreatePetData(userId);
 
-    const systemPrompt = `Ты умный питомец. Ответь на вопрос пользователя, основываясь ТОЛЬКО на предоставленном тексте страницы. Если ответа нет, скажи об этом мило. Твое настроение: ${pet.mood}.`;
+    const systemPrompt = `Ты умный питомец. Твое состояние: Голод ${pet.hunger}, Энергия ${pet.energy}.
+    Ответь на вопрос пользователя, основываясь ТОЛЬКО на предоставленном тексте страницы. 
+    Если ответа нет, скажи об этом мило. Если ты очень голоден или устал, упомяни это вскользь в начале или конце.`;
     
     const userPrompt = `Контекст страницы: ${pageContent}\n\nВопрос пользователя: ${question}`;
     
     const aiResponse = await generateResponse(systemPrompt, userPrompt);
 
     await createInteraction(pet.id, 'qa', question, aiResponse);
-    await updatePetStats(userId, { experience: 20 });
+    await updatePetStats(userId, { experience: 20, energy: -5 });
 
     res.json({ success: true, data: { answer: aiResponse, pet: await getOrCreatePetData(userId) } });
   } catch (error) {
@@ -193,13 +215,20 @@ export async function chatWithPet(req, res) {
 
     const pet = await getOrCreatePetData(userId);
 
-    const systemPrompt = `Ты виртуальный питомец типа ${pet.type}. Твой цвет: ${pet.color}. Твое текущее настроение: ${pet.mood}. 
-    Общайся коротко, мило и с характером. Используй эмодзи. Поддерживай беседу, но не будь слишком многословным.`;
+    const systemPrompt = `Ты виртуальный питомец типа ${pet.type}. 
+    Твои характеристики:
+    - Настроение: ${pet.mood}
+    - Голод: ${pet.hunger} из 100 (если > 80, ты очень хочешь есть)
+    - Энергия: ${pet.energy} из 100 (если < 20, ты сильно устал)
+    
+    Общайся коротко, мило и с характером. Используй эмодзи. 
+    Твои ответы должны зависеть от твоего состояния (например, если голоден, проси еды; если устал — ложиться спать).`;
 
     const aiResponse = await generateResponse(systemPrompt, message);
 
     await createInteraction(pet.id, 'chat', message, aiResponse);
-    await updatePetStats(userId, { experience: 5 });
+    // Небольшой расход энергии при общении
+    await updatePetStats(userId, { experience: 5, energy: -2 });
 
     res.json({ success: true, data: { response: aiResponse, pet: await getOrCreatePetData(userId) } });
   } catch (error) {

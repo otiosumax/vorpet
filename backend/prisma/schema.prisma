@@ -18,6 +18,8 @@ model Pet {
   color       String    @default("#FFFFFF") // Основной цвет питомца
   accessories Json      @default("[]") // Массив аксессуаров в формате JSON
   mood        String    @default("happy") // Текущее настроение: happy, sad, excited, tired
+  hunger    Int      @default(50) // 0 - сыт, 100 - очень голоден
+  energy    Int      @default(100) // 0 - уставший, 100 - полон сил
   level       Int       @default(1) // Уровень питомца
   experience  Int       @default(0) // Опыт для повышения уровня
   createdAt   DateTime  @default(now())

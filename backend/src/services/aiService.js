@@ -34,7 +34,7 @@ export const generateResponse = async (userMessage, taskType = 'chat', context =
     }
 
     const completion = await groq.chat.completions.create({
-      model: process.env.GROQ_MODEL || 'llama3-8b-8192',
+      model: process.env.GROQ_MODEL || 'llama3-8b-instant',
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },
         { role: 'user', content: finalPrompt }

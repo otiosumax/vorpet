@@ -136,3 +136,9 @@ const updated = await prisma.pet.update({
   data: { mood: 'happy', experience: { increment: 10 } }
 })
 ```
+
+## ⚠️ Важно
+
+- Файл `.env` не должен попадать в git (добавьте его в `.gitignore`)
+- В продакшене используйте надежные пароли и ограничьте CORS
+- Для работы ИИ-функций потребуется добавить API ключи (OpenAI или другие)
