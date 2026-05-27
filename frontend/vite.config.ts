@@ -18,7 +18,14 @@ export default defineConfig({
   build: {
     outDir: "dist",
     rollupOptions: {
-      input: {main: "./index.html"}
-    }
-  }
+      input: {
+        main: "./index.html",
+        summary: "./summary.html",
+        background: "./src/background.ts",
+      },
+      output: {
+        entryFileNames: "[name].js",
+      },
+    },
+  },
 });

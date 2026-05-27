@@ -3,7 +3,12 @@
   "name": "Vorpet",
   "version": "0.0.1",
   "description": "A useful virtual pet",
-  "permissions": [],
+  "permissions": ["contextMenus", "storage"],
+  "host_permissions": ["http://localhost:3000/*"],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
   "action": {
     "default_popup": "index.html"
   }
